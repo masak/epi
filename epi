@@ -1,0 +1,160 @@
+#! /usr/bin/perl
+use 5.010;
+use strict;
+use warnings;
+
+use constant EXEC_OK => 0;
+
+my $USAGE = <<'EOM';
+epi -- Intentional testing
+Usage: epi <subcommand> <other args>
+
+Subcommands:
+
+    init [directory]    Initialize a new epi repository
+EOM
+
+die $USAGE
+    unless $ARGV[0] eq 'init';
+
+if (@ARGV > 1) {
+    my $directory = $ARGV[1];
+    init_directory($directory);
+}
+else {
+    init_current_directory();
+}
+
+sub init_directory {
+    my ($directory) = @_;
+
+    die "$directory already exists -- too timid to overwrite it\n"
+        if -e $directory;
+
+    mkdir $directory
+        or die "Wanted to create directory $directory but couldn't: $!\n";
+    chdir $directory;
+    init_current_directory();
+}
+
+sub init_current_directory {
+    die ".epi/ directory found -- this already appears to be an epi repository\n"
+        if dot_epi_dir_exists();
+    die ".epi file found -- too timid to remove it and create a directory there\n"
+        if dot_epi_file_exists();
+
+    git_init();
+    create_dot_epi_dir();
+    create_model_dir();
+    create_lib_dir();
+    create_t_dir();
+}
+
+sub dot_epi_dir_exists { -d '.epi' }
+sub dot_epi_file_exists { -f '.epi' }
+
+sub make_new_file {
+    my ($filename, $contents) = @_;
+
+    open my $fh, '>', $filename
+        or die "Wanted to write a new file $filename, but failed: $!";
+    print {$fh} $contents;
+    close $fh;
+}
+
+sub git_init {
+    system("git init") == EXEC_OK
+        or die "Couldn't initialize git repository\n";
+}
+
+sub create_dot_epi_dir {
+    mkdir '.epi';
+    make_new_file '.epi/config', <<'EOF';
+[core]
+EOF
+}
+
+sub create_model_dir {
+    mkdir 'model';
+    make_new_file 'model/commands.xsd', <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://tempuri.org/XMLSchema.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://tempuri.org/XMLSchema.xsd"
+    xmlns:mstns="http://tempuri.org/XMLSchema.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  
+</xs:schema>
+EOF
+    make_new_file 'model/events.xsd', <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://tempuri.org/XMLSchema.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://tempuri.org/XMLSchema.xsd"
+    xmlns:mstns="http://tempuri.org/XMLSchema.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  
+</xs:schema>
+EOF
+}
+
+sub create_lib_dir {
+    mkdir 'lib';
+    make_new_file 'lib/Repository.pm', <<'EOF';
+package Repository;
+
+use Moose;
+
+1;
+EOF
+    make_new_file 'lib/TestRepository.pm', <<'EOF';
+package TestRepository;
+
+use Moose;
+
+extends 'Repository';
+
+has 'storage' => (
+    is => 'rw',
+);
+
+sub add {
+    my ($self, $id, $aggregate) = @_;
+
+    die "Must supply an id"
+        unless defined $id;
+    die "Must supply an aggregate"
+        unless defined $aggregate;
+    die "Second argument must be of type AggregateRoot"
+        unless $aggregate->isa('Hex::AggregateRoot');
+
+    $self->storage($aggregate);
+}
+
+sub get_by_id {
+    my ($self, $id) = @_;
+
+    die "Aggregate with id $id not found"
+        unless defined $self->storage();
+
+    return $self->storage();
+}
+
+sub save {
+    # This is a test repository, so we don't want to save
+}
+
+sub reset {
+    my ($self) = @_;
+
+    $self->storage(undef);
+    return;
+}
+
+1;
+EOF
+}
+
+sub create_t_dir {
+    mkdir 't';
+}
