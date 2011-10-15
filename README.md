@@ -7,6 +7,7 @@ Some ideas for the subcommands:
     epi goto MyAggregate    -- edit lib/MyAggregate.pm
     epi goto -t MyAggregate -- edit t/myaggregate.t
     
+    epi test                -- run all tests
     epi test MyAggregate    -- run t/myaggregate.t
     
     epi newtest MyAggregate -- add a test
