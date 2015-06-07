@@ -2,10 +2,10 @@ Like git, but for managing the workflow around an intentional application.
 
 Some ideas for the subcommands:
 
-    epi goto commands       -- edit model/commands.xsd
-    epi goto events         -- edit model/events.xsd
-    epi goto MyAggregate    -- edit lib/MyAggregate.pm
-    epi goto -t MyAggregate -- edit t/myaggregate.t
+    epi edit commands       -- edit model/commands.xsd
+    epi edit events         -- edit model/events.xsd
+    epi edit MyAggregate    -- edit lib/MyAggregate.pm
+    epi edit -t MyAggregate -- edit t/myaggregate.t
     
     epi test                -- run all tests
     epi test MyAggregate    -- run t/myaggregate.t
@@ -14,7 +14,7 @@ Some ideas for the subcommands:
     epi newtest MyAggregate -g Event1,Event2 -w Command3 -t Event4,Event4
                             -- add a test, events and commands pre-filled
     
-    epi goto                -- edit file/line, DWIM based on recent events
+    epi edit                -- edit file/line, DWIM based on recent events
     
     epi make                -- rebuild Makefile, run make
 
